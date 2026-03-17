@@ -1,0 +1,10 @@
+{
+  "debug.node.autoAttach": "on",
+  "debug.javascript.autoAttachFilter": "onlyWithFlag",
+  "debug.javascript.breakOnConditionalError": true,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  },
+  "prisma.showPrismaDataPlatformNotification": false
+}

@@ -1,0 +1,189 @@
+###
+# Prism Backend API Tests
+# Use VS Code REST Client extension to run these
+# NOW WITH COMPLETE CRUD! ✅
+###
+
+@baseUrl = http://localhost:5000
+
+### Health Check
+GET {{baseUrl}}/health
+
+### ==================== USERS (COMPLETE CRUD) ====================
+
+### Create User
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "tim@example.com"
+}
+
+### Get All Users
+GET {{baseUrl}}/users
+
+### Get User by ID
+GET {{baseUrl}}/users/1
+
+### Update User ✨ NEW
+PUT {{baseUrl}}/users/1
+Content-Type: application/json
+
+{
+  "email": "tim.updated@example.com"
+}
+
+### Delete User ✨ NEW (WARNING: CASCADE DELETES ARTICLES & RESULTS!)
+DELETE {{baseUrl}}/users/2
+
+### ==================== ARTICLES (COMPLETE CRUD) ====================
+
+### Create Article (Manual)
+POST {{baseUrl}}/articles
+Content-Type: application/json
+
+{
+  "url": "https://example.com/article",
+  "content": "Sample article content...",
+  "userId": 1
+}
+
+### Get All Articles
+GET {{baseUrl}}/articles
+
+### Get Article by ID
+GET {{baseUrl}}/articles/1
+
+### Update Article
+PUT {{baseUrl}}/articles/1
+Content-Type: application/json
+
+{
+  "url": "https://example.com/updated-article",
+  "content": "Updated content..."
+}
+
+### Delete Article
+DELETE {{baseUrl}}/articles/1
+
+### ==================== RESULTS (COMPLETE CRUD) ====================
+
+### Create Analysis Result (Manual)
+POST {{baseUrl}}/articles/1/results
+Content-Type: application/json
+
+{
+  "biasScore": 75,
+  "biasedLeaning": "left",
+  "summary": "Test summary of bias analysis"
+}
+
+### Get Result by Article ID
+GET {{baseUrl}}/articles/1/results
+
+### Update Result
+PUT {{baseUrl}}/results/1
+Content-Type: application/json
+
+{
+  "biasScore": 80,
+  "biasedLeaning": "right",
+  "summary": "Updated summary"
+}
+
+### Delete Result ✨ NEW
+DELETE {{baseUrl}}/results/1
+
+### ==================== ANALYSIS (AUTO-SAVES TO DB!) ====================
+
+### ⚡ Analyze Article - Basic (auto-saves!)
+POST {{baseUrl}}/analyze-article
+Content-Type: application/json
+
+{
+  "url": "https://www.bbc.com/news"
+}
+
+### Analyze Article - With User ID
+POST {{baseUrl}}/analyze-article
+Content-Type: application/json
+
+{
+  "url": "https://www.theguardian.com/world",
+  "userId": 1
+}
+
+### Analyze Article - Skip Cache (force new analysis)
+POST {{baseUrl}}/analyze-article
+Content-Type: application/json
+
+{
+  "url": "https://www.bbc.com/news",
+  "skipCache": true
+}
+
+### ==================== HISTORY & STATS ====================
+
+### Get Analysis History (last 20)
+GET {{baseUrl}}/history
+
+### Get Analysis History (last 10)
+GET {{baseUrl}}/history?limit=10
+
+### Get Analysis History (for specific user)
+GET {{baseUrl}}/history?userId=1
+
+### Get Single Analysis by ID
+GET {{baseUrl}}/history/1
+
+### Get System Statistics
+GET {{baseUrl}}/stats
+
+### ==================== COMPLETE CRUD WORKFLOW ====================
+
+### 1️⃣ Create a user
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "workflow@test.com"
+}
+
+### 2️⃣ Update the user (use ID from step 1)
+PUT {{baseUrl}}/users/3
+Content-Type: application/json
+
+{
+  "email": "workflow.updated@test.com"
+}
+
+### 3️⃣ Analyze an article for this user
+POST {{baseUrl}}/analyze-article
+Content-Type: application/json
+
+{
+  "url": "https://www.bbc.com/news",
+  "userId": 3
+}
+
+### 4️⃣ Get user with all articles
+GET {{baseUrl}}/users/3
+
+### 5️⃣ Update the analysis result (use ID from response)
+PUT {{baseUrl}}/results/1
+Content-Type: application/json
+
+{
+  "biasScore": 90,
+  "biasedLeaning": "left",
+  "summary": "Updated: Very biased analysis"
+}
+
+### 6️⃣ Delete the result
+DELETE {{baseUrl}}/results/1
+
+### 7️⃣ Delete the article
+DELETE {{baseUrl}}/articles/1
+
+### 8️⃣ Delete the user (CASCADE!)
+DELETE {{baseUrl}}/users/3
