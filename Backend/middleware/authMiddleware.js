@@ -1,6 +1,7 @@
 /**
  * Auth Middleware
  *
+ * 
  * Protects routes by verifying the JWT token sent in the Authorization header.
  *
  * Usage in server.js:
