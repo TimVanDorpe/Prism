@@ -1,4 +1,4 @@
-.login-container {
+.register-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -7,13 +7,20 @@
     padding: 20px;
 }
 
-.login-container .logo h1 {
+.register-container .logo h1 {
     font-size: 2.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
     color: #646cff;
 }
 
-.login-container form {
+.register-container h2 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: #aaa;
+}
+
+.register-container form {
     width: 100%;
     max-width: 320px;
     display: flex;
@@ -21,31 +28,31 @@
     gap: 1rem;
 }
 
-.login-container .form-group {
+.register-container .form-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.login-container .form-group label {
+.register-container .form-group label {
     font-weight: 500;
     text-align: left;
 }
 
-.login-container .form-group input {
+.register-container .form-group input {
     padding: 0.75rem;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 1rem;
 }
 
-.login-container .error-message {
+.register-container .error-message {
     color: #ff4444;
     font-size: 0.9rem;
     margin: 0;
 }
 
-.login-container button[type="submit"] {
+.register-container button[type="submit"] {
     padding: 0.75rem;
     font-size: 1rem;
     cursor: pointer;

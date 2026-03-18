@@ -1,28 +1,55 @@
-// Vergelijk met een C# Service class
-// Later vervang je dit door echte API calls
+const API_BASE_URL = 'http://localhost:5000';
 
 const authService = {
-    // Simuleert of gebruiker is ingelogd (in-memory state)
-    isAuthenticated: false,
+    login: async (email, password) => {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
 
-    // Login method - returns true/false
-    login: (username, password) => {
-        if (username === "admin" && password === "admin") {
-            authService.isAuthenticated = true;
-            return true;
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Login mislukt');
         }
-        return false;
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        return data;
     },
 
-    // Logout method
+    register: async (email, password) => {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Registratie mislukt');
+        }
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        return data;
+    },
+
     logout: () => {
-        authService.isAuthenticated = false;
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
     },
 
-    // Check of gebruiker is ingelogd
-    checkAuth: () => {
-        return authService.isAuthenticated;
-    }
+    getToken: () => localStorage.getItem('token'),
+
+    getUser: () => {
+        const user = localStorage.getItem('user');
+        return user ? JSON.parse(user) : null;
+    },
+
+    isAuthenticated: () => !!localStorage.getItem('token'),
 };
 
 export default authService;

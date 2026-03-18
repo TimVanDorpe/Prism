@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../../services/authService';
-import '../css/LoginPage.css';
+import '../css/RegisterPage.css';
 
-function LoginPage() {
+function RegisterPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -17,7 +17,7 @@ function LoginPage() {
         setLoading(true);
 
         try {
-            await authService.login(email, password);
+            await authService.register(email, password);
             navigate('/home');
         } catch (err) {
             setError(err.message);
@@ -27,10 +27,12 @@ function LoginPage() {
     };
 
     return (
-        <div className="login-container">
+        <div className="register-container">
             <div className="logo">
                 <h1>🔷 Prism</h1>
             </div>
+
+            <h2>Maak een account aan</h2>
 
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
@@ -52,7 +54,7 @@ function LoginPage() {
                         id="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Fill in password"
+                        placeholder="Kies een wachtwoord"
                         required
                     />
                 </div>
@@ -60,15 +62,15 @@ function LoginPage() {
                 {error && <p className="error-message">{error}</p>}
 
                 <button type="submit" disabled={loading}>
-                    {loading ? 'Even geduld...' : 'Login'}
+                    {loading ? 'Even geduld...' : 'Registreren'}
                 </button>
             </form>
 
             <p className="switch-link">
-                Nog geen account? <Link to="/register">Registreren</Link>
+                Al een account? <Link to="/">Inloggen</Link>
             </p>
         </div>
     );
 }
 
-export default LoginPage;
+export default RegisterPage;
