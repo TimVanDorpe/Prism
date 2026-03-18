@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(npx prisma:*)",
-      "Bash(node -e \"require\\(''./controllers/authController''\\); require\\(''./middleware/authMiddleware''\\); console.log\\(''OK''\\)\")"
+      "Bash(node -e \"require\\(''./controllers/authController''\\); require\\(''./middleware/authMiddleware''\\); console.log\\(''OK''\\)\")",
+      "Bash(gh auth:*)"
     ]
   }
 }
