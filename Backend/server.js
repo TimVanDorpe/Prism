@@ -119,6 +119,8 @@ const { createArticle, getAllArticles, getArticleById, updateArticle, deleteArti
 const { createResult, getResultByArticleId, updateResult, deleteResult } = require('./controllers/resultController');
 const { analyzeArticle } = require('./controllers/analyzeController');
 const { getHistory, getAnalysisById, getStats } = require('./controllers/historyController');
+const { register, login } = require('./controllers/authController');
+const { requireAuth } = require('./middleware/authMiddleware');
 
 // ==================== ROUTES ====================
 
@@ -133,6 +135,10 @@ const { getHistory, getAnalysisById, getStats } = require('./controllers/history
  *         description: Server is running
  */
 app.get('/health', getHealth);
+
+// ==================== AUTH ROUTES ====================
+app.post('/auth/register', register);
+app.post('/auth/login', login);
 
 // ==================== USER ROUTES (COMPLETE CRUD) ====================
 /**
@@ -328,7 +334,7 @@ app.delete('/results/:id', deleteResult);
  *                 type: boolean
  *                 description: Force new analysis even if URL exists
  */
-app.post('/analyze-article', analyzeArticle);
+app.post('/analyze-article', requireAuth, analyzeArticle);
 
 // ==================== HISTORY & STATS ROUTES ====================
 /**
@@ -351,7 +357,7 @@ app.post('/analyze-article', analyzeArticle);
  *       200:
  *         description: List of past analyses
  */
-app.get('/history', getHistory);
+app.get('/history', requireAuth, getHistory);
 
 /**
  * @swagger
@@ -366,7 +372,7 @@ app.get('/history', getHistory);
  *         schema:
  *           type: integer
  */
-app.get('/history/:id', getAnalysisById);
+app.get('/history/:id', requireAuth, getAnalysisById);
 
 /**
  * @swagger
@@ -378,7 +384,7 @@ app.get('/history/:id', getAnalysisById);
  *       200:
  *         description: Statistics about analyses
  */
-app.get('/stats', getStats);
+app.get('/stats', requireAuth, getStats);
 
 // ==================== START SERVER ====================
 app.listen(PORT, () => {
