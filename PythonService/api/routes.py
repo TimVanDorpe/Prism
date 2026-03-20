@@ -6,7 +6,7 @@ from models.schemas import CompareRequest, CompareResponse, ArticleComparison
 router = APIRouter()
 
 @router.post("/compare", response_model=CompareResponse)
-@limiter.limit("10/minute")
+@limiter.limit("10/minute") #10 requests per minute per IP address
 async def compare(request: Request, body: CompareRequest):
     dummy_article = ArticleComparison(
         url=str(body.url),

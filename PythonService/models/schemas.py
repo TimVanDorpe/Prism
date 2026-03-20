@@ -8,7 +8,7 @@ class ArticleComparison(BaseModel):
     url: str
     source: str
     biasScore: int
-    biasedLeaning: Literal["left", "right", "neutral"]
+    biasedLeaning: Literal["left", "right", "neutral"] #Literal == ENUM
     summary: str
 
 class CompareResponse(BaseModel):

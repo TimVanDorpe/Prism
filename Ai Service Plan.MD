@@ -70,12 +70,13 @@
  RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)    
  - Verify: Print first 3 chunks from a real BBC URL
 
- Step 3 — Embeddings (OpenAI)
+ Step 3 — Embeddings (Google Generative AI — free)
 
  - services/embeddings.py:
    - embed_text(text) -> list[float] — single embedding
-   - embed_chunks(chunks) -> list[list[float]] — batch (cheaper)       
- - Verify: Embed two similar sentences, print cosine similarity vs. an 
+   - embed_chunks(chunks) -> list[list[float]] — batch (cheaper)
+   - Uses GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+ - Verify: Embed two similar sentences, print cosine similarity vs. an
   unrelated one
 
  Step 4 — Vector Database (Pinecone)
@@ -208,7 +209,7 @@
  Environment Variables (PythonService/.env)
 
  ANTHROPIC_API_KEY=sk-ant-...   # same key as Backend/.env
- OPENAI_API_KEY=sk-...           # embeddings only
+ GOOGLE_API_KEY=AIza...          # embeddings only (free via aistudio.google.com)
  PINECONE_API_KEY=pcsk-...
  PINECONE_INDEX_NAME=prism-articles
  LANGCHAIN_TRACING_V2=true       # enable after Step 7
@@ -230,7 +231,7 @@
  slowapi>=0.1.9
  langchain>=0.3.0
  langchain-anthropic>=0.3.0
- langchain-openai>=0.2.0
+ langchain-google-genai>=2.0.0
  langchain-community>=0.3.0
  pinecone-client>=5.0.0
  langchain-pinecone>=0.2.0
