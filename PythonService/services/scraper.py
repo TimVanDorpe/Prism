@@ -1,5 +1,5 @@
 from langchain_community.document_loaders import WebBaseLoader # hier wordt BeautifulSoup gebruikt om de tekst van een webpagina te extraheren
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def load_article(url: str) -> str:
     loader = WebBaseLoader([url]) # zet om naar standaard formaat dat langchain verwacht
