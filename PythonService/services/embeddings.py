@@ -8,6 +8,7 @@ def embed_text(text: str) -> list[float]:
     result = client.models.embed_content(
         model="models/gemini-embedding-001",
         contents=text,
+        config={"output_dimensionality": 1024},
     )
     return result.embeddings[0].values
 
@@ -15,7 +16,8 @@ def embed_chunks(chunks: list[str]) -> list[list[float]]:
     """Embed meerdere chunks in één batch API call (efficiënter)"""
     result = client.models.embed_content(
         model="models/gemini-embedding-001",
-        contents=chunks,  # Kan een list aan in één call
+        contents=chunks,
+        config={"output_dimensionality": 1024},
     )
     return [e.values for e in result.embeddings]
 

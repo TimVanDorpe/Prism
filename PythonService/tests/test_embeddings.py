@@ -11,7 +11,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 def test_embed_text_returns_vector():
     vector = embed_text("Trump signs trade deal")
     assert isinstance(vector, list)
-    assert len(vector) == 3072  # gemini-embedding-001 geeft altijd 3072 getallen
+    assert len(vector) == 1024  # gemini-embedding-001 geeft altijd 1024 getallen
 
 def test_similar_sentences_have_high_similarity():
     vec1 = embed_text("De premier tekende een handelsakkoord")
@@ -30,7 +30,7 @@ def test_embed_chunks_returns_multiple_vectors():
     chunks = ["Eerste chunk tekst", "Tweede chunk tekst", "Derde chunk tekst"]
     vectors = embed_chunks(chunks)
     assert len(vectors) == 3
-    assert all(len(v) == 3072 for v in vectors)
+    assert all(len(v) == 1024 for v in vectors)
 
 
 #   Wat is cosine similarity?
