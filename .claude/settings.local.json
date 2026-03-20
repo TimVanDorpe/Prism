@@ -4,7 +4,11 @@
       "Bash(npm install:*)",
       "Bash(npx prisma:*)",
       "Bash(node -e \"require\\(''./controllers/authController''\\); require\\(''./middleware/authMiddleware''\\); console.log\\(''OK''\\)\")",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(find C:UsersTimsourcereposPrismFrontendFrontendsrc -type f -name *.jsx -o -name *.js -o -name *.json)"
     ]
   }
 }

@@ -1,71 +1,89 @@
-// src/services/apiService.js
-// Dit is de API service layer - vergelijkbaar met HttpClient in .NET
+import authService from './authService';
 
 const API_BASE_URL = 'http://localhost:5000';
 
-/**
- * Analyze article met SSE streaming
- * Dit is vergelijkbaar met IAsyncEnumerable<T> in .NET
- * 
- * @param {string} url - Article URL
- * @param {function} onChunk - Callback voor elk chunk (zoals yield return in C#)
- * @param {function} onComplete - Callback wanneer klaar
- * @param {function} onError - Callback bij fout
- */
-export function analyzeArticleStream(url, onChunk, onComplete, onError) {
-    // SSE (Server-Sent Events) - real-time streaming
-    const eventSource = new EventSource(
-        `${API_BASE_URL}/analyze-article?url=${encodeURIComponent(url)}`
-    );
-
-    eventSource.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            onChunk(data); // Zoals yield return in C#
-        } catch (err) {
-            console.error('Parse error:', err);
-        }
-    };
-
-    eventSource.onerror = (error) => {
-        console.error('SSE Error:', error);
-        eventSource.close();
-        onError(error);
-    };
-
-    eventSource.addEventListener('complete', () => {
-        eventSource.close();
-        onComplete();
-    });
-
-    // Return functie om te stoppen (zoals CancellationToken in .NET)
-    return () => eventSource.close();
+function authHeader() {
+    const token = authService.getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 /**
- * POST request naar analyze endpoint
- * Alternatief voor SSE - normale HTTP POST
+ * Analyze article via SSE streaming using fetch + ReadableStream.
+ * EventSource wordt niet gebruikt omdat die geen headers ondersteunt.
+ *
+ * @param {string} url - Article URL to analyze
+ * @param {function} onChunk - Called for each parsed SSE data chunk
+ * @param {function} onComplete - Called when stream ends
+ * @param {function} onError - Called on error
+ * @returns {function} Abort function (like CancellationToken in .NET)
  */
-export async function analyzeArticlePost(url) {
-    const response = await fetch(`${API_BASE_URL}/analyze-article`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url })
-    });
+export function analyzeArticleStream(url, onChunk, onComplete, onError) {
+    const controller = new AbortController();
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    (async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/analyze-article`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeader()
+                },
+                body: JSON.stringify({ url }),
+                signal: controller.signal
+            });
 
-    return await response.json();
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || `HTTP ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+
+                // SSE lines start with "data: "
+                const lines = buffer.split('\n');
+                buffer = lines.pop(); // keep incomplete last line
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith('data:')) continue;
+
+                    const json = trimmed.slice(5).trim();
+                    if (!json) continue;
+
+                    try {
+                        const data = JSON.parse(json);
+                        onChunk(data);
+                    } catch {
+                        // ignore malformed lines
+                    }
+                }
+            }
+
+            onComplete();
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                onError(err);
+            }
+        }
+    })();
+
+    return () => controller.abort();
 }
 
 /**
  * Get analysis history
  */
 export async function getHistory(limit = 20) {
-    const response = await fetch(`${API_BASE_URL}/history?limit=${limit}`);
+    const response = await fetch(`${API_BASE_URL}/history?limit=${limit}`, {
+        headers: authHeader()
+    });
     return await response.json();
 }
