@@ -7,10 +7,19 @@ from services.embeddings import embed_text, embed_chunks
 from services.vector_store import upsert_article, search_similar
 from services.analyzer import analyze_bias
 
+# Tarieven Claude Sonnet (claude-sonnet-4-20250514) in USD per token
+_COST_PER_INPUT_TOKEN  = 3.00  / 1_000_000
+_COST_PER_OUTPUT_TOKEN = 15.00 / 1_000_000
+
 
 def _domain(url: str) -> str:
     """Haal het leesbare domein op uit een URL, bijv. 'bbc.com'."""
     return urlparse(url).netloc.replace("www.", "")
+
+
+def _tokens_to_usd(input_tokens: int, output_tokens: int) -> float:
+    """Bereken de kostprijs op basis van de Anthropic tarieven."""
+    return (input_tokens * _COST_PER_INPUT_TOKEN) + (output_tokens * _COST_PER_OUTPUT_TOKEN)
 
 
 def run_pipeline(url: str) -> CompareResponse:
@@ -75,40 +84,51 @@ def run_pipeline(url: str) -> CompareResponse:
             related_urls.append(hit_url)
 
     # ── f. Bias-analyse van het originele artikel (GENERATE) ─────────────
-    # We sturen maximaal 8000 tekens naar Claude. De LCEL-keten in
-    # analyzer.py bouwt de prompt, stuurt hem naar ChatAnthropic en
-    # parseert het antwoord naar een getypeerd BiasAnalysis-object.
-    original_analysis = analyze_bias(raw_text[:8000])
+    # analyze_bias geeft nu een AnalysisResult terug met de BiasAnalysis
+    # én de token counts uit Claude's usage_metadata.
+    total_input_tokens  = 0
+    total_output_tokens = 0
+
+    original_result = analyze_bias(raw_text[:8000])
+    total_input_tokens  += original_result.input_tokens
+    total_output_tokens += original_result.output_tokens
+
     original = ArticleComparison(
         url=url,
         source=_domain(url),
-        biasScore=original_analysis.biasScore,
-        biasedLeaning=original_analysis.biasedLeaning,
-        summary=original_analysis.summary,
+        biasScore=original_result.analysis.biasScore,
+        biasedLeaning=original_result.analysis.biasedLeaning,
+        summary=original_result.analysis.summary,
     )
 
     # ── g. Bias-analyse van gerelateerde artikelen (AUGMENT + GENERATE) ──
     # Voor elk gevonden gerelateerd artikel scrapen en analyseren we opnieuw.
-    # Dit is de "augmented" stap: we voeden Claude met meerdere echte bronnen
-    # over hetzelfde verhaal, zodat de vergelijking op feiten gebaseerd is.
+    # Token counts worden opgeteld voor de eindkostberekening.
     # We beperken tot 3 artikelen om kosten te beheersen.
     related = []
     for rel_url in related_urls[:3]:
         try:
-            rel_text = load_article(rel_url)
-            rel_analysis = analyze_bias(rel_text[:8000])
+            rel_text   = load_article(rel_url)
+            rel_result = analyze_bias(rel_text[:8000])
+            total_input_tokens  += rel_result.input_tokens
+            total_output_tokens += rel_result.output_tokens
             related.append(ArticleComparison(
                 url=rel_url,
                 source=_domain(rel_url),
-                biasScore=rel_analysis.biasScore,
-                biasedLeaning=rel_analysis.biasedLeaning,
-                summary=rel_analysis.summary,
+                biasScore=rel_result.analysis.biasScore,
+                biasedLeaning=rel_result.analysis.biasedLeaning,
+                summary=rel_result.analysis.summary,
             ))
         except Exception:
             # Sla artikelen over die niet gescraped kunnen worden
             continue
 
-    # ── h. Resultaat opbouwen, cachen en teruggeven ──────────────────────
-    result = CompareResponse(original=original, related=related, costUsd=0.0)
+    # ── h. Kostberekening ────────────────────────────────────────────────
+    # Stap 9: we gebruiken de token counts uit usage_metadata (niet tiktoken).
+    # Anthropic levert exacte counts mee in elke response — geen schatting nodig.
+    cost_usd = _tokens_to_usd(total_input_tokens, total_output_tokens)
+
+    # ── i. Resultaat opbouwen, cachen en teruggeven ──────────────────────
+    result = CompareResponse(original=original, related=related, costUsd=round(cost_usd, 6))
     set_cached(url, result)
     return result

@@ -9,7 +9,7 @@ structuur van de response.
 from unittest.mock import patch, MagicMock
 
 from services.rag import run_pipeline
-from services.analyzer import BiasAnalysis
+from services.analyzer import AnalysisResult, BiasAnalysis
 from models.schemas import CompareResponse, ArticleComparison
 
 URL_ORIGINEEL = "https://bbc.com/news/artikel-1"
@@ -21,7 +21,11 @@ NEP_TEKST = "Dit is een nepartikel over politiek." * 20
 NEP_CHUNKS = ["chunk een", "chunk twee", "chunk drie"]
 NEP_VECTOR = [0.1] * 1024
 
-NEP_ANALYSE = BiasAnalysis(biasScore=60, biasedLeaning="left", summary="Licht links getint.")
+NEP_ANALYSE = AnalysisResult(
+    analysis=BiasAnalysis(biasScore=60, biasedLeaning="left", summary="Licht links getint."),
+    input_tokens=400,
+    output_tokens=80,
+)
 
 NEP_HITS_MET_GERELATEERD = [
     {"url": URL_ORIGINEEL, "chunk_index": 0, "text": "chunk", "score": 0.99},   # zelfde URL → overgeslagen
@@ -91,8 +95,8 @@ def test_bias_score_komt_van_analyzer():
             stack.enter_context(p)
         result = run_pipeline(URL_ORIGINEEL)
 
-    assert result.original.biasScore == NEP_ANALYSE.biasScore
-    assert result.original.biasedLeaning == NEP_ANALYSE.biasedLeaning
+    assert result.original.biasScore == NEP_ANALYSE.analysis.biasScore
+    assert result.original.biasedLeaning == NEP_ANALYSE.analysis.biasedLeaning
 
 
 def test_geen_gerelateerde_artikelen_als_pinecone_leeg_is():

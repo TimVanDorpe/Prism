@@ -132,13 +132,16 @@
 
  Step 9 — Cost Tracking
 
- - utils/cost_tracker.py:
-   - count_tokens(text, model="cl100k_base") -> int via tiktoken       
-   - estimate_cost(input_tokens, output_tokens) -> float (Claude:      
- $3/$15 per 1M, embeddings: $0.00002/1k)
- - Add costUsd field to CompareResponse
- - Verify: Check the cost field in the response matches ~$0.07 per new 
-  article
+ - Geen tiktoken nodig — Anthropic stuurt token counts mee in elke response
+   via usage_metadata (exact, niet geschat)
+ - services/analyzer.py:
+   - AnalysisResult dataclass: analysis + input_tokens + output_tokens
+   - analyze_bias() geeft AnalysisResult terug i.p.v. BiasAnalysis
+ - services/rag.py:
+   - Telt input/output tokens op over alle analyze_bias() calls
+   - _tokens_to_usd(): $3/1M input, $15/1M output
+   - Vult costUsd in CompareResponse
+ - Verify: /compare response bevat costUsd > 0.0 (~$0.07 per nieuw artikel)
 
  ---
  Extra Steps — Go Deeper After MVP
