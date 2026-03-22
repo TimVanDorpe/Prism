@@ -46,7 +46,15 @@ def search_similar(
         include_metadata=True,
         namespace=namespace,
     )
-    return result.matches
+    return [
+        {
+            "url": match.metadata["url"],
+            "chunk_index": match.metadata["chunk_index"],
+            "text": match.metadata["text"],
+            "score": match.score,
+        }
+        for match in result.matches
+    ]
 
 
 def delete_namespace(namespace: str) -> None:

@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()  # laadt .env in os.environ zodat LangChain de vars kan lezen
 from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded

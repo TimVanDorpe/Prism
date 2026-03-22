@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Literal
 from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
@@ -18,6 +19,24 @@ class BiasAnalysis(BaseModel):
     summary: str = Field(
         description="Korte samenvatting van de bias in het artikel (2-3 zinnen)"
     )
+
+
+@dataclass
+class AnalysisResult:
+    """
+    Stap 9 — Cost Tracking via Anthropic usage_metadata
+
+    Claude stuurt bij elke response de token counts mee in usage_metadata.
+    We lezen die uit en geven ze terug naast de BiasAnalysis zodat rag.py
+    de totale kost van een /compare call kan berekenen.
+
+    Tarieven Claude Sonnet (claude-sonnet-4-20250514):
+      - Input:  $3  per 1 miljoen tokens
+      - Output: $15 per 1 miljoen tokens
+    """
+    analysis: BiasAnalysis
+    input_tokens: int
+    output_tokens: int
 
 
 # --- De drie bouwstenen van de chain ---
@@ -44,14 +63,30 @@ model = ChatAnthropic(
     api_key=settings.anthropic_api_key,
 )
 
-# --- De LCEL chain: prompt | model | parser ---
-# De | operator koppelt de stappen aan elkaar zoals een pijplijn
-chain = prompt | model | parser
+# --- Twee chains ---
+# chain_raw stopt vóór de parser zodat we de AIMessage (met usage_metadata) kunnen lezen
+chain_raw = prompt | model
 
 
-def analyze_bias(text: str) -> BiasAnalysis:
-    """Analyseer een artikel op bias. Geeft een getypt BiasAnalysis object terug."""
-    return chain.invoke({
+def analyze_bias(text: str) -> AnalysisResult:
+    """
+    Analyseer een artikel op bias.
+
+    Geeft een AnalysisResult terug met:
+      - analysis:       getypt BiasAnalysis object
+      - input_tokens:   aantal tokens in de prompt
+      - output_tokens:  aantal tokens in Claude's antwoord
+    """
+    message = chain_raw.invoke({
         "text": text,
-        "format_instructions": parser.get_format_instructions(), #json schema dat we aan Claude geven zodat hij weet hoe hij moet antwoorden
+        "format_instructions": parser.get_format_instructions(),
     })
+
+    analysis = parser.invoke(message)
+
+    usage = message.usage_metadata or {}
+    return AnalysisResult(
+        analysis=analysis,
+        input_tokens=usage.get("input_tokens", 0),
+        output_tokens=usage.get("output_tokens", 0),
+    )
