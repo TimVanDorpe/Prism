@@ -11,11 +11,12 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  articles  Article[]
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  password    String
+  createdAt   DateTime     @default(now())
+  articles    Article[]
+  comparisons Comparison[]
 }
 
 model Article {
@@ -34,4 +35,24 @@ model AnalysedResult {
   summary      String  @db.Text
   articleId    Int     @unique
   article      Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+}
+
+model Comparison {
+  id              Int       @id @default(autoincrement())
+  jobId           String    @unique
+  status          String    @default("pending") // "pending" | "completed" | "failed"
+  url             String
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  // Result fields (null until completed)
+  originalScore   Int?
+  originalLeaning String?
+  originalSummary String?   @db.Text
+  relatedArticles Json?
+
+  costUsd         Float?
+  errorMessage    String?
 }
