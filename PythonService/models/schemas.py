@@ -4,6 +4,11 @@ from typing import Literal
 class CompareRequest(BaseModel):
     url: HttpUrl
 
+class RunComparisonRequest(BaseModel):
+    jobId: str
+    url: HttpUrl
+    userId: int
+
 class ArticleComparison(BaseModel):
     url: str
     source: str

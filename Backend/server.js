@@ -121,6 +121,8 @@ const { analyzeArticle } = require('./controllers/analyzeController');
 const { getHistory, getAnalysisById, getStats } = require('./controllers/historyController');
 const { register, login } = require('./controllers/authController');
 const { requireAuth } = require('./middleware/authMiddleware');
+const { compareArticle, getComparisonStatus } = require('./controllers/compareController');
+require('./services/worker');
 
 // ==================== ROUTES ====================
 
@@ -385,6 +387,10 @@ app.get('/history/:id', requireAuth, getAnalysisById);
  *         description: Statistics about analyses
  */
 app.get('/stats', requireAuth, getStats);
+
+// ==================== COMPARISON ROUTES ====================
+app.post('/compare-article', requireAuth, compareArticle);
+app.get('/compare-article/:jobId', requireAuth, getComparisonStatus);
 
 // ==================== START SERVER ====================
 app.listen(PORT, () => {
