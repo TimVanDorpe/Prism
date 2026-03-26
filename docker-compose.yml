@@ -10,14 +10,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    environment:
-      RABBITMQ_DEFAULT_USER: prism
-      RABBITMQ_DEFAULT_PASS: prism
+  redis:
+    image: redis:7-alpine
     ports:
-      - "5672:5672"    # AMQP protocol
-      - "15672:15672"  # Management UI
+      - "6379:6379"
 
   temporal:
     image: temporalio/auto-setup:1.24

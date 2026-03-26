@@ -1,21 +1,30 @@
-# Workflow Orchestration — RabbitMQ + Temporal
+# Workflow Orchestration — BullMQ + Temporal
 
-## Wat is RabbitMQ?
+## Wat is BullMQ?
 
-Een **message broker**: een tussenlaag die berichten ontvangt, opslaat en doorstuurt.
+Een **job queue library voor Node.js** gebouwd op Redis. Simpler dan RabbitMQ: geen aparte broker-server met eigen protocol, gewoon Redis als opslag.
 
 ```
-Node.js ──► [comparison.requests queue] ──► Python service
-Node.js ◄── [comparison.results queue] ◄── Python service
+POST /compare-article
+       │
+       ▼
+  BullMQ Queue (Redis)
+       │
+       ▼
+  BullMQ Worker (Node.js)
+       │
+       ▼
+  HTTP call naar Python/Temporal
 ```
 
-**Waarom?**
+**Waarom BullMQ i.p.v. RabbitMQ?**
 - Node.js hoeft niet te wachten tot Python klaar is (fire-and-forget)
-- Als Python even down is, blijven jobs in de wachtrij
-- Je leert het "async job pattern": submit → jobId terug → later ophalen
+- Ingebouwde retry, delay en prioriteit — geen boilerplate
+- Eén Redis container i.p.v. een volledige RabbitMQ broker
+- BullMQ is Node.js-native: producer én worker in hetzelfde ecosysteem
 
-**Zonder RabbitMQ:** Node.js blokkeert 30-60 seconden op Python
-**Met RabbitMQ:** Node.js antwoordt in < 100ms met een jobId, Python verwerkt op de achtergrond
+**Zonder BullMQ:** Node.js blokkeert 30-60 seconden op Python
+**Met BullMQ:** Node.js antwoordt in < 100ms met een jobId, Worker verwerkt op de achtergrond
 
 ---
 
@@ -54,7 +63,7 @@ Het doel is die pipeline te upgraden naar een productieklaar async systeem:
 
 ## Stap 0: Docker Desktop installeren
 
-Docker is nodig om RabbitMQ en Temporal lokaal te draaien.
+Docker is nodig om Redis en Temporal lokaal te draaien.
 
 1. Download Docker Desktop: https://www.docker.com/products/docker-desktop/
 2. Installeer en herstart
@@ -68,13 +77,13 @@ Docker is nodig om RabbitMQ en Temporal lokaal te draaien.
 
 Draait alleen de infrastructuur (niet de app zelf):
 - PostgreSQL (voor de DB)
-- RabbitMQ + Management UI (port 5672 + 15672)
+- Redis (port 6379) — gebruikt door BullMQ
 - Temporal server (port 7233)
 - Temporal UI (port 8080)
 
 **Verifieer:**
 - `docker compose up -d`
-- RabbitMQ UI: http://localhost:15672 (prism/prism)
+- Redis bereikbaar: `docker exec -it redis redis-cli ping` → `PONG`
 - Temporal UI: http://localhost:8080
 
 ---
@@ -100,17 +109,29 @@ npx prisma generate
 
 ---
 
-## Stap 3: RabbitMQ in Node.js
+## Stap 3: BullMQ in Node.js
 
-### Nieuw bestand: `Backend/services/messageBroker.js`
-- `connect()` — verbinding met RabbitMQ, 2 queues aanmaken
-- `publishJob({ jobId, url, userId })` — stuurt job naar `comparison.requests`
-- `consumeResults(handler)` — luistert op `comparison.results`, roept handler aan
+### Nieuwe dependency
+```bash
+npm install bullmq
+```
+Geen RabbitMQ nodig — BullMQ gebruikt de Redis container uit Stap 1.
+
+### Nieuw bestand: `Backend/services/queue.js`
+- Exporteert een BullMQ `Queue` instantie (`comparisonQueue`) verbonden met Redis
+- `addComparisonJob({ jobId, url, userId })` — voegt job toe aan de queue
+
+### Nieuw bestand: `Backend/services/worker.js`
+- BullMQ `Worker` die jobs van `comparisonQueue` verwerkt
+- Per job:
+  1. Roept de Python service aan via HTTP (`POST /run-comparison`)
+  2. Updatet de `Comparison` in de DB met het resultaat (`status: "completed"`)
+  3. Bij fout: updatet `status: "failed"` + `errorMessage`
 
 ### Nieuw bestand: `Backend/controllers/compareController.js`
 - `compareArticle(req, res)`:
   1. Maak `Comparison` record aan met `status: "pending"`
-  2. Publiceer job naar RabbitMQ
+  2. Voeg job toe aan BullMQ queue via `addComparisonJob()`
   3. Antwoord HTTP 202 `{ jobId, status: "pending" }` — binnen < 100ms
 - `getComparisonStatus(req, res)`:
   1. Zoek Comparison op `jobId`
@@ -118,8 +139,7 @@ npx prisma generate
 
 ### Wijziging: `Backend/server.js`
 - Registreer 2 nieuwe routes: `POST /compare-article`, `GET /compare-article/:jobId`
-- Initialiseer RabbitMQ bij startup: verbind + start `consumeResults` listener
-- Listener updatet de Comparison in de DB als Python een resultaat publiceert
+- Importeer en start de BullMQ worker bij opstart
 
 ---
 
@@ -140,16 +160,16 @@ npx prisma generate
 - Draait als apart process naast `uvicorn`
 
 ### Wijziging: `PythonService/main.py`
-- Start bij opstart een background task die:
-  1. Verbindt met RabbitMQ, luistert op `comparison.requests`
-  2. Per bericht: start `CompareArticleWorkflow` via Temporal client
-  3. Publiceert resultaat naar `comparison.results`
+- Voeg een nieuw endpoint toe: `POST /run-comparison`
+  1. Ontvangt `{ jobId, url, userId }` van de Node.js BullMQ worker
+  2. Start `CompareArticleWorkflow` via Temporal client
+  3. Wacht op resultaat en geeft het terug als HTTP response
 
 ### Nieuwe dependencies:
 ```
 temporalio>=1.7.0
-aio-pika>=9.4.0
 ```
+_(geen `aio-pika` meer nodig — Python communiceert nu via HTTP, niet via een queue)_
 
 ---
 
@@ -177,9 +197,10 @@ aio-pika>=9.4.0
 |---|---|
 | `docker-compose.yml` | Nieuw |
 | `Backend/prisma/schema.prisma` | Uitbreiden |
-| `Backend/services/messageBroker.js` | Nieuw |
+| `Backend/services/queue.js` | Nieuw — BullMQ Queue |
+| `Backend/services/worker.js` | Nieuw — BullMQ Worker |
 | `Backend/controllers/compareController.js` | Nieuw |
-| `Backend/server.js` | 2 routes + RabbitMQ init |
+| `Backend/server.js` | 2 routes + BullMQ worker init |
 | `PythonService/workflows/compare_workflow.py` | Nieuw |
 | `PythonService/worker.py` | Nieuw |
 | `PythonService/main.py` | RabbitMQ consumer toevoegen |
@@ -190,10 +211,10 @@ aio-pika>=9.4.0
 
 ## Verificatie end-to-end
 
-1. `docker compose up -d` → RabbitMQ UI + Temporal UI bereikbaar
+1. `docker compose up -d` → Redis + Temporal UI bereikbaar
 2. Start Node.js + Python service + Python worker
 3. `POST /compare-article { "url": "..." }` → `{ jobId, status: "pending" }` in < 100ms
-4. Temporal UI (localhost:8080) → workflow verschijnt, activities lopen één voor één
-5. `GET /compare-article/:jobId` → `status: "completed"` na ~30-60s
-6. RabbitMQ UI → queues `comparison.requests` + `comparison.results` zichtbaar
+4. BullMQ Worker pikt job op → roept Python aan via HTTP
+5. Temporal UI (localhost:8080) → workflow verschijnt, activities lopen één voor één
+6. `GET /compare-article/:jobId` → `status: "completed"` na ~30-60s
 7. `GET /stats` → `totalComparisons: 1`
