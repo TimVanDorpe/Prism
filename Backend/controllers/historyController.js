@@ -12,10 +12,20 @@ const prisma = new PrismaClient();
  */
 async function getHistory(req, res) {
   try {
-    const { limit = 20, userId } = req.query;
-    
+    const { limit = 20, userId, type } = req.query;
+
+    if (type === 'comparison') {
+      const where = userId ? { userId: parseInt(userId) } : {};
+      const comparisons = await prisma.comparison.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: parseInt(limit)
+      });
+      return res.json({ total: comparisons.length, comparisons });
+    }
+
     const where = userId ? { userId: parseInt(userId) } : {};
-    
+
     const articles = await prisma.article.findMany({
       where,
       include: {
@@ -27,9 +37,9 @@ async function getHistory(req, res) {
       orderBy: { id: 'desc' },
       take: parseInt(limit)
     });
-    
+
     console.log(`[HISTORY] Retrieved ${articles.length} analyses`);
-    
+
     res.json({
       total: articles.length,
       articles: articles.map(a => ({
@@ -96,6 +106,7 @@ async function getStats(req, res) {
     const totalArticles = await prisma.article.count();
     const totalResults = await prisma.analysedResult.count();
     const totalUsers = await prisma.user.count();
+    const totalComparisons = await prisma.comparison.count({ where: { status: 'completed' } });
     
     // Average bias score
     const results = await prisma.analysedResult.findMany({
@@ -117,6 +128,7 @@ async function getStats(req, res) {
     res.json({
       totalArticles,
       totalAnalyses: totalResults,
+      totalComparisons,
       totalUsers,
       avgBiasScore: Math.round(avgBiasScore * 10) / 10,
       byLeaning: leaningCounts

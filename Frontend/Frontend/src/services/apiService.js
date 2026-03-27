@@ -87,3 +87,48 @@ export async function getHistory(limit = 20) {
     });
     return await response.json();
 }
+
+/**
+ * Submit a URL for comparison analysis.
+ * Returns immediately with a jobId (< 100ms).
+ *
+ * @param {string} url - Article URL to compare
+ * @returns {Promise<{ jobId: string, status: string }>}
+ */
+export async function compareArticle(url) {
+    const response = await fetch(`${API_BASE_URL}/compare-article`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeader()
+        },
+        body: JSON.stringify({ url })
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Poll the status of a comparison job.
+ * Call every 3s until status is "completed" or "failed".
+ *
+ * @param {string} jobId
+ * @returns {Promise<{ jobId, status, originalScore, originalLeaning, originalSummary, relatedArticles, costUsd, errorMessage }>}
+ */
+export async function getComparisonStatus(jobId) {
+    const response = await fetch(`${API_BASE_URL}/compare-article/${jobId}`, {
+        headers: authHeader()
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+}
