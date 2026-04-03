@@ -1,0 +1,58 @@
+.spectrum-wrapper {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.spectrum-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.label-left {
+    color: #5b9bd5;
+}
+
+.label-center {
+    color: #aaa;
+}
+
+.label-right {
+    color: #d55b5b;
+}
+
+.spectrum-chart-bg {
+    background: linear-gradient(to right, #1a2a3a, #2a1a3a, #3a1a1a);
+    border-radius: 12px;
+    border: 1px solid #333;
+    overflow: hidden;
+}
+
+.spectrum-tooltip {
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.82rem;
+    max-width: 240px;
+}
+
+.tooltip-url {
+    color: #ddd;
+    margin: 0 0 0.3rem 0;
+    word-break: break-all;
+}
+
+.tooltip-score {
+    color: #aaa;
+    margin: 0 0 0.2rem 0;
+}
+
+.tooltip-leaning {
+    margin: 0;
+    font-weight: 600;
+    color: #646cff;
+}

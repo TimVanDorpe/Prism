@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import authService from '../../services/authService';
 import { analyzeArticleStream } from '../../services/apiService';
+import { useComparison } from '../../context/ComparisonContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import '../css/HomePage.css';
 
@@ -11,9 +10,10 @@ function HomePage() {
     const [messages, setMessages] = useState([]);
     const [liveText, setLiveText] = useState('');
     const [result, setResult] = useState(null);
+    const [currentUrl, setCurrentUrl] = useState('');
     const [error, setError] = useState('');
 
-    const navigate = useNavigate();
+    const { addArticle, isSelected, selectedArticles } = useComparison();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -23,6 +23,7 @@ function HomePage() {
         setLiveText('');
         setResult(null);
         setError('');
+        setCurrentUrl(url);
 
         analyzeArticleStream(
             url,
@@ -50,27 +51,28 @@ function HomePage() {
         );
     };
 
-    const handleLogout = () => {
-        authService.logout();
-        navigate('/');
-    };
-
     const leaningLabel = (leaning) => {
         if (leaning === 'left') return '⬅ Links';
         if (leaning === 'right') return '➡ Rechts';
         return '⚖ Neutraal';
     };
 
-    return (
-        <div className="home-container">
-            <header className="home-header">
-                <h1>🔷 Prism</h1>
-                <button onClick={handleLogout} className="logout-btn">
-                    Log out
-                </button>
-            </header>
+    const handleAddToComparison = () => {
+        if (!result) return;
+        addArticle({
+            id: result.id ?? currentUrl,
+            url: currentUrl,
+            result
+        });
+    };
 
-            <main className="home-main">
+    const articleId = result?.id ?? currentUrl;
+    const alreadySelected = isSelected(articleId);
+    const comparisonFull = selectedArticles.length >= 5;
+
+    return (
+        <div className="home-main-wrap">
+            <div className="home-main">
                 <form onSubmit={handleSubmit} className="url-form">
                     <label htmlFor="url">Enter a news URL</label>
                     <div className="url-input-group">
@@ -122,13 +124,20 @@ function HomePage() {
                             <h3>Samenvatting</h3>
                             <p>{result.summary}</p>
                         </div>
+                        <button
+                            className={`compare-btn ${alreadySelected ? 'added' : ''}`}
+                            onClick={handleAddToComparison}
+                            disabled={alreadySelected || comparisonFull}
+                        >
+                            {alreadySelected ? '✓ Added to Comparison' : comparisonFull ? 'Comparison full (5/5)' : '+ Add to Comparison'}
+                        </button>
                     </div>
                 )}
 
                 {status === 'error' && (
                     <p className="error-message">{error}</p>
                 )}
-            </main>
+            </div>
         </div>
     );
 }

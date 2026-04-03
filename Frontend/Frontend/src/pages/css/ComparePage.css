@@ -1,0 +1,164 @@
+.compare-container {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.compare-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.compare-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #646cff;
+}
+
+.cp-clear-btn {
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid #666;
+    color: #aaa;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.cp-clear-btn:hover {
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.compare-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    color: #aaa;
+    font-size: 1rem;
+    padding: 4rem 2rem;
+}
+
+.cp-go-history-btn {
+    padding: 0.6rem 1.4rem;
+    background: #646cff;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.cp-go-history-btn:hover {
+    opacity: 0.85;
+}
+
+.cp-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.cp-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cp-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.cp-favicon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 3px;
+}
+
+.cp-url {
+    flex: 1;
+    color: #ddd;
+    font-size: 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cp-url:hover {
+    color: #646cff;
+    text-decoration: underline;
+}
+
+.cp-remove-btn {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    transition: color 0.2s;
+}
+
+.cp-remove-btn:hover {
+    color: #ff4444;
+}
+
+.cp-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.cp-leaning-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+}
+
+.cp-leaning-left {
+    background: #1a3a5c;
+    color: #5b9bd5;
+}
+
+.cp-leaning-right {
+    background: #3a1a1a;
+    color: #d55b5b;
+}
+
+.cp-leaning-neutral {
+    background: #2a2a2a;
+    color: #aaa;
+}
+
+.cp-score {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.cp-summary {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #bbb;
+    line-height: 1.6;
+}

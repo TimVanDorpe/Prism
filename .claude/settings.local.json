@@ -8,7 +8,13 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(find C:UsersTimsourcereposPrismFrontendFrontendsrc -type f -name *.jsx -o -name *.js -o -name *.json)"
+      "Bash(find C:UsersTimsourcereposPrismFrontendFrontendsrc -type f -name *.jsx -o -name *.js -o -name *.json)",
+      "Bash(mv \"Ai Service Plan.md\" \"1 - Ai Service Plan.md\")",
+      "Bash(mv \"Architecture Flow.md\" \"2 - Architecture Flow.md\")",
+      "Bash(mv \"Workflow Orchestration.md\" \"3 - Workflow Orchestration.md\")",
+      "Bash(mv \"2 - Workflow Orchestration.md\" \"temp.md\")",
+      "Bash(mv \"3 - Architecture Flow.md\" \"2 - Architecture Flow.md\")",
+      "Bash(mv \"temp.md\" \"3 - Workflow Orchestration.md\")"
     ]
   }
 }

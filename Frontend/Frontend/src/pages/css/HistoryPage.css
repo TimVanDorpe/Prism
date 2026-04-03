@@ -1,0 +1,220 @@
+.history-container {
+    flex: 1;
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.history-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.history-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #646cff;
+}
+
+.history-count {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.history-loading,
+.history-error,
+.history-empty {
+    text-align: center;
+    margin-top: 4rem;
+    color: #aaa;
+    font-size: 1rem;
+}
+
+.history-error {
+    color: #ff4444;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.history-row {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    transition: border-color 0.2s;
+}
+
+.history-row.selected {
+    border-color: #646cff;
+}
+
+.history-row-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.history-row-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.history-favicon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.history-row-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.history-url {
+    color: #ddd;
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.history-url:hover {
+    color: #646cff;
+    text-decoration: underline;
+}
+
+.history-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.leaning-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+}
+
+.leaning-left {
+    background: #1a3a5c;
+    color: #5b9bd5;
+}
+
+.leaning-right {
+    background: #3a1a1a;
+    color: #d55b5b;
+}
+
+.leaning-neutral {
+    background: #2a2a2a;
+    color: #aaa;
+}
+
+.history-score {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.history-row-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.expand-btn,
+.select-btn {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.expand-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #aaa;
+}
+
+.expand-btn:hover {
+    border-color: #646cff;
+    color: #646cff;
+}
+
+.select-btn {
+    background: transparent;
+    border: 1px solid #646cff;
+    color: #646cff;
+}
+
+.select-btn:hover:not(:disabled) {
+    background: #646cff;
+    color: white;
+}
+
+.select-btn.selected {
+    background: #646cff;
+    color: white;
+}
+
+.select-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.history-summary {
+    margin: 0.75rem 0 0 0;
+    font-size: 0.85rem;
+    color: #bbb;
+    line-height: 1.6;
+    padding-top: 0.75rem;
+    border-top: 1px solid #2a2a2a;
+}
+
+.history-footer-bar {
+    position: sticky;
+    bottom: 0;
+    margin-top: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: #1e1e2e;
+    border: 1px solid #646cff;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+
+.goto-compare-btn {
+    padding: 0.5rem 1.2rem;
+    background: #646cff;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.goto-compare-btn:hover {
+    opacity: 0.85;
+}
